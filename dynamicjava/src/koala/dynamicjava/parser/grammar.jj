@@ -359,7 +359,7 @@ public class Parser {
 
     @Override public Primary withArrayDim(Token last) {
       return new ArrayTypeNamePrimary(new ArrayTypeName(asTypeName(), 1, false, _range(this, last)));
-	}
+ }
     
   }
   
@@ -689,7 +689,7 @@ public class Parser {
     }
     @Override public Primary withClassBody(List<Node> members, Token last) {
       SourceInfo si = _range(this, last);
-	  return new ExpressionPrimary(new AnonymousInnerAllocation(_outer, _targs, _name, _ctargs, _args, members, si));
+   return new ExpressionPrimary(new AnonymousInnerAllocation(_outer, _targs, _name, _ctargs, _args, members, si));
     }
   }
 
@@ -795,7 +795,7 @@ PARSER_END(Parser)
     | < CLASS: "class" >
     | < CONST: "const" >
     | < CONTINUE: "continue" >
-    | < _DEFAULT: "default" >
+    | < DEFAULT: "default" >
     | < DO: "do" >
     | < DOUBLE: "double" >
     | < ELSE: "else" >
@@ -963,6 +963,7 @@ PARSER_END(Parser)
     | < COMMA: "," >
     | < DOT: "." >
     | < ARROW: "->" >
+    | < DOUBLECOLON: "::" >
   }
   
   /* OPERATORS */
@@ -1325,6 +1326,17 @@ PARSER_END(Parser)
         flags.add(Modifier.STRICT);
       }
     | 
+      "default"
+       {
+         if (flags.contains(Modifier.ABSTRACT)) {
+           throw new ParseError(reader.getMessage("default.abstract", null), _range(token, token));
+         }
+         if (flags.contains(Modifier.PRIVATE)) {
+           throw new ParserError(reader.getMessage("default.private", null), _range(token, token));
+         }
+         flags.add(Modifier.DEFAULT);
+       }
+    |
       ann = annotation()
       { annots.add(ann); }
     ))+
@@ -2682,7 +2694,7 @@ PARSER_END(Parser)
     Expression exp;
   }
   {
-    ( LOOKAHEAD(lambdaExpression()) exp=lambdaExpression()
+    (LOOKAHEAD(lambdaExpression()) exp=lambdaExpression()
     | exp=conditionalExpression() [ exp=expressionSuffix(exp) ])
     {
       System.out.println("Parsing expression...");
@@ -3288,8 +3300,7 @@ PARSER_END(Parser)
       }
       return exp;
     }
-  }
-  
+  } 
   /**
    * Used internally to parse an expression
    */
